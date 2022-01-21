@@ -1,5 +1,5 @@
 from select import select
-import psutil # Library pour récupérer les processus sur Windows ou Linux
+import psutil #Used to retrieve process in cross platform
 from datetime import datetime
 import pandas as pd
 import time
@@ -21,14 +21,14 @@ def Process_Priority_Windows(x):
 def Get_Processes():
     process_list = []
     for process in psutil.process_iter():
-        # Récupère toutes les infos des process en multithreading
+        # Get processes info with multithreading
         with process.oneshot():
             process_creation_time = datetime.fromtimestamp(process.create_time())
             cpu_usage = process.cpu_percent()
             status = process.status()
 
             try:
-                # Récupère la priorité des processus, pour linux 0 est la plus petite et 128 la plus grande
+                # Get processes priority : linux = 0 -> 128
                 priority = int(process.nice())
                 if(os.name == 'nt'):
                     priority = Process_Priority_Windows(priority)
@@ -71,11 +71,11 @@ def Create_Dataframe(processes):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Task Manager")
-    parser.add_argument("-c", help="""Collones à afficher,
+    parser.add_argument("-c", help="""Column to show,
                                                 exemple : name,create_time,cpu_usage,status,priority,memory_usage,read_bytes,write_bytes,username.""",
                         default="name,cpu_usage,memory_usage,read_bytes,write_bytes,status,create_time,priority")
-    parser.add_argument("-n", help="Nombre de processus à afficher. Défaut = Tous", default=0)
-    parser.add_argument("-u", help="Affiche les processus périodiquement jusqu'à la fermeture manuelle du processus.", default=False)
+    parser.add_argument("-n", help="Number of processes to show. Default = every", default=0)
+    parser.add_argument("-u", help="Show processes periodicaly untill manual close.", default=False)
 
     args        = parser.parse_args()
     columns     = args.c
