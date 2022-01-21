@@ -1,10 +1,19 @@
+from ast import arg
 from select import select
-import psutil #Used to retrieve process in cross platform
+import psutil #Used to retrieve processes in cross platform
 from datetime import datetime
 import pandas as pd
 import time
 import os
 import argparse
+import sys
+
+def Kill_Process(pid):
+    for process in psutil.process_iter():
+        with process.oneshot():
+            if(int(process.pid) == int(pid)):
+                process.kill()
+    return
 
 def Process_Priority_Windows(x):
     return {
@@ -61,13 +70,15 @@ def Get_Processes():
 def Create_Dataframe(processes):
     dataframe = pd.DataFrame(processes)
 
-    # PID = index du dataframe
+    # PID = index of dataframe
     dataframe.set_index('pid', inplace=True)
 
     dataframe['create_time'] = dataframe['create_time'].apply(datetime.strftime, args=("%Y-%m-%d %H:%M:%S",))
 
     dataframe = dataframe[columns.split(",")]
     return dataframe
+
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Task Manager")
@@ -76,11 +87,17 @@ if __name__ == "__main__":
                         default="name,cpu_usage,memory_usage,read_bytes,write_bytes,status,create_time,priority")
     parser.add_argument("-n", help="Number of processes to show. Default = every", default=0)
     parser.add_argument("-u", help="Show processes periodicaly untill manual close.", default=False)
+    parser.add_argument("-k", help="Process to kill. -k <PID>", default=0)
 
     args        = parser.parse_args()
     columns     = args.c
     n           = int(args.n)
     live_update = args.u
+    pid_kill    = args.k
+
+    if(pid_kill != 0):
+        Kill_Process(pid_kill)
+        sys.exit()
 
     processes = Get_Processes()
     df = Create_Dataframe(processes)
